@@ -1,9 +1,10 @@
-#if UNITY_EDITOR && UNITY_STANDALONE_WIN
+﻿#if UNITY_EDITOR && UNITY_STANDALONE_WIN
 /**
  * Copyright (c) Pixisoft Corporations. All rights reserved.
  * 
  * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
  */
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -24,6 +25,15 @@ namespace Inspect.Ini
 
         private string rawText;
         private INIParser iniFile;
+
+        private string sectionToRename;
+        private string pairToRename;
+        private string renameValue;
+
+        private Dictionary<string, bool> foldouts = new Dictionary<string, bool>();
+        private const bool DEFAULT_FOLD = false;
+
+        private Dictionary<string, Dictionary<string, string>> cache = new Dictionary<string, Dictionary<string, string>>();
 
         /* Setter & Getter */
 
@@ -89,7 +99,7 @@ namespace Inspect.Ini
 
             GUILayout.Space(5);
 
-            //IniUtil.BeginVertical(() => { RecursiveDrawField(xmlDoc.Root); });
+            IniUtil.BeginVertical(() => { RecursiveDrawField(); });
 
             GUILayout.Space(5);
 
@@ -131,7 +141,7 @@ namespace Inspect.Ini
             rawText = File.ReadAllText(Path);
 
             iniFile = new INIParser();
-            iniFile.OpenFromString(rawText);
+            iniFile.Open(Path);
         }
 
         private void WriteToIni(bool useRaw = false)
@@ -143,9 +153,15 @@ namespace Inspect.Ini
             {
                 if (!useRaw)
                     rawText = iniFile.iniString;
+
+                if (rawText != iniFile.iniString)
+                {
+                    File.WriteAllText(Path, rawText);
+                    return;
+                }
             }
 
-            File.WriteAllText(Path, rawText);
+            iniFile.Close();  // when you close it, it writes to the disk
         }
 
         private string GetUniqueName(string orignalName)
@@ -160,7 +176,7 @@ namespace Inspect.Ini
                 {
                     Debug.LogError("Stop calling all your fields the same thing! Isn't it confusing?");
                 }
-                uniqueName = string.Format("{0}_{1}", orignalName, suffix.ToString());
+                uniqueName = string.Format("{0} {1}", orignalName, suffix.ToString());
             }
             return uniqueName;
         }
@@ -211,9 +227,212 @@ namespace Inspect.Ini
 
                 iniFile.WriteValue(section, key, "");
             });
-            menu.AddSeparator("");
 
             menu.ShowAsContext();
+        }
+
+        private void ApplyModifiedData()
+        {
+            foreach (KeyValuePair<string, Dictionary<string, string>> section_entry in cache)
+            {
+                string section = section_entry.Key;
+                Dictionary<string, string> pairs = section_entry.Value;
+
+                foreach (KeyValuePair<string, string> pair_entry in pairs)
+                {
+                    string key = pair_entry.Key;
+                    string val = pair_entry.Value;
+
+                    iniFile.WriteValue(section, key, val);
+                }
+            }
+        }
+
+        private void RecursiveDrawField()
+        {
+            Dictionary<string, Dictionary<string, string>> sections = iniFile.Sections;
+
+            cache.Clear();
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> section_entry in sections)
+            {
+                string section = section_entry.Key;
+                Dictionary<string, string> pairs = section_entry.Value;
+
+                DrawSection(section, pairs);
+            }
+
+            ApplyModifiedData();
+        }
+
+        private void DrawSection(string name, Dictionary<string, string> pairs)
+        {
+            bool renaming = (name == sectionToRename && pairToRename == null);
+
+            IniUtil.BeginHorizontal(() =>
+            {
+                if (renaming)
+                {
+                    DrawRenameField(name);
+                }
+                else
+                {
+                    string txt = "Σ";
+                    const float border = 4;
+                    if (IniUtil.Button(txt, border))
+                        DrawSectionMenu(name);
+                }
+
+                GUILayout.Space(13);
+
+                if (!foldouts.ContainsKey(name)) foldouts.Add(name, DEFAULT_FOLD);
+                foldouts[name] = IniUtil.Foldout(foldouts[name], name);
+            });
+
+            if (!foldouts[name])
+                return;
+
+            foreach (KeyValuePair<string, string> pair_entry in pairs)
+            {
+                string pair_name = pair_entry.Key;
+                string pair_value = pair_entry.Value;
+                DrawPair(name, pair_name, pair_value);
+            }
+        }
+
+        private void DrawPair(string section, string name, string val)
+        {
+            const int level = 1;
+
+            bool renaming = (section == sectionToRename && name == pairToRename);
+
+            IniUtil.BeginHorizontal(() =>
+            {
+                GUILayout.Space(INDENT_SPACE * level);
+
+                if (renaming)
+                {
+                    DrawRenameField(section, name);
+                }
+                else
+                {
+                    string txt = "Σ";
+                    const float border = 4;
+                    if (IniUtil.Button(txt, border))
+                        DrawPairMenu(section, name);
+
+                    IniUtil.Label(name);
+                }
+
+                string newVal = GUILayout.TextField(val);
+                if (newVal != val)
+                {
+                    if (!cache.ContainsKey(section))
+                        cache.Add(section, new Dictionary<string, string>());
+
+                    if (!cache[section].ContainsKey(name))
+                        cache[section].Add(name, newVal);
+                    else
+                        cache[section][name] = newVal;
+                }
+            });
+        }
+
+        private void DrawSectionMenu(string section)
+        {
+            GenericMenu menu = new GenericMenu();
+
+            IniUtil.AddItem(menu, "Rename", () =>
+            {
+                sectionToRename = section;
+                pairToRename = null;
+
+                renameValue = section;
+            });
+
+            menu.AddSeparator("");
+
+            IniUtil.AddItem(menu, "Remove", () => { iniFile.SectionDelete(section); });
+
+            menu.ShowAsContext();
+        }
+
+        private void DrawPairMenu(string section, string key)
+        {
+            GenericMenu menu = new GenericMenu();
+
+            IniUtil.AddItem(menu, "Rename", () =>
+            {
+                pairToRename = key;
+                sectionToRename = section;
+
+                renameValue = key;
+            });
+
+            menu.AddSeparator("");
+
+            IniUtil.AddItem(menu, "Remove", () => { iniFile.KeyDelete(section, key); });
+
+            menu.ShowAsContext();
+        }
+
+        private void DrawRenameField(string section)
+        {
+            var style = new GUIStyle(GUI.skin.button);
+            style.normal.textColor = new Color(0, 1, 0);
+
+            if (GUILayout.Button("✔", style, GUILayout.Width(24)))
+            {
+                if (!iniFile.IsSectionExists(renameValue))
+                {
+                    Dictionary<string, string> pairs = iniFile.Sections[section];
+
+                    foreach (KeyValuePair<string, string> entry in pairs)
+                    {
+                        string key = entry.Key;
+                        string val = entry.Value;
+
+                        iniFile.WriteValue(renameValue, key, val);
+                    }
+
+                    iniFile.SectionDelete(section);
+                }
+                GUI.FocusControl("");
+
+                sectionToRename = null;
+                pairToRename = null;
+                renameValue = null;
+            }
+
+            GUI.SetNextControlName("RENAME_SECTION");
+            string txt = renameValue + "        ";
+            renameValue = EditorGUILayout.TextField(renameValue, IniUtil.TextWidth(txt));
+        }
+
+        private void DrawRenameField(string section, string key)
+        {
+            var style = new GUIStyle(GUI.skin.button);
+            style.normal.textColor = new Color(0, 1, 0);
+
+            if (GUILayout.Button("✔", style, GUILayout.Width(24)))
+            {
+                if (!iniFile.IsKeyExists(section, renameValue))
+                {
+                    string oldVal = iniFile.Sections[section][key];
+
+                    iniFile.WriteValue(section, renameValue, oldVal);
+                    iniFile.KeyDelete(section, key);
+                }
+                GUI.FocusControl("");
+
+                sectionToRename = null;
+                pairToRename = null;
+                renameValue = null;
+            }
+
+            GUI.SetNextControlName("RENAME_PAIR");
+            string txt = renameValue + "        ";
+            renameValue = EditorGUILayout.TextField(renameValue, IniUtil.TextWidth(txt));
         }
     }
 }

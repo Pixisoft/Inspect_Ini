@@ -5,6 +5,7 @@
   * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
  */
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using static UnityEditor.GenericMenu;
@@ -78,6 +79,24 @@ namespace Inspect.Ini
             return value;
         }
 
+        public static void Label(string label, float border = 0.0f)
+        {
+            float width = CalcSize(label).x + border;
+            GUILayout.Label(label, GUILayout.Width(width));
+        }
+
+        public static bool Button(string label, float border = 0.0f)
+        {
+            float width = CalcSize(label).x + border;
+            return GUILayout.Button(label, GUILayout.Width(width));
+        }
+
+        public static GUILayoutOption TextWidth(string text)
+        {
+            float width = CalcSize(text).x;
+            return GUILayout.Width(width);
+        }
+
         public static void AddItem(GenericMenu menu, string name, MenuFunction fnc, bool cond = true)
         {
             var content = new GUIContent(name);
@@ -85,6 +104,13 @@ namespace Inspect.Ini
                 menu.AddItem(content, false, fnc);
             else
                 menu.AddDisabledItem(content, false);
+        }
+
+        public static bool Foldout(bool foldout, string content, float border = 0.0f)
+        {
+            GUIStyle style = new GUIStyle(EditorStyles.foldout);
+            style.fixedWidth = IniUtil.CalcSize(content).x + border;
+            return EditorGUILayout.Foldout(foldout, content, style);
         }
     }
 }

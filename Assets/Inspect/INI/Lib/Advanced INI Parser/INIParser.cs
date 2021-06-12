@@ -1,7 +1,9 @@
-/*******************************
-Version: 1.0
-Project Boon
-*******************************/
+/**
+ * Version: 1.1
+ * Project Boon
+ *
+ * Edit by, Pixisoft Corporations
+ */
 
 using System;
 using System.Collections.Generic;
@@ -24,23 +26,11 @@ public class INIParser
 
     // *** File name ***
     private string m_FileName = null;
-    public string FileName
-    {
-        get
-        {
-            return m_FileName;
-        }
-    }
+    public string FileName { get { return m_FileName; } }
 
     // ** String represent Ini
     private string m_iniString = null;
-    public string iniString
-    {
-        get
-        {
-            return m_iniString;
-        }
-    }
+    public string iniString { get { return m_iniString; } }
 
     // *** Automatic flushing flag ***
     private bool m_AutoFlush = false;
@@ -51,6 +41,8 @@ public class INIParser
 
     // *** Local cache modified flag ***
     private bool m_CacheModified = false;
+
+    public Dictionary<string, Dictionary<string, string>> Sections { get { return this.m_Sections; } }
 
     #endregion
 
