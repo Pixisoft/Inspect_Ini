@@ -126,7 +126,7 @@ namespace Inspect.Ini
 
             if (unableToParse)
             {
-                var content = new GUIContent("Unable to parse text into XML. Make sure there are no mistakes!", errorIcon);
+                var content = new GUIContent("Unable to parse text into INI. Make sure there are no mistakes!", errorIcon);
                 GUILayout.Label(content, helpBoxRichText);
             }
             else
@@ -201,7 +201,7 @@ namespace Inspect.Ini
         }
 
         [MenuItem("Assets/Create/INI File", priority = 81)]
-        public static void CreateNewXmlFile()
+        public static void CreateNewIniFile()
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             if (path == "")
@@ -229,6 +229,10 @@ namespace Inspect.Ini
 
                 iniFile.WriteValue(section, key, "");
             });
+
+            menu.AddSeparator("");
+
+            IniUtil.AddItem(menu, "Clear", () => { iniFile.Clear(); });
 
             menu.ShowAsContext();
         }
@@ -466,6 +470,9 @@ namespace Inspect.Ini
                 }
                 else
                 {
+                    if (renameValue != section)
+                        Debug.LogWarning("Section key exists, please try another key: " + section);
+
                     sectionToRename = null;
                     pairToRename = null;
                     renameValue = null;
@@ -494,6 +501,9 @@ namespace Inspect.Ini
                 }
                 else
                 {
+                    if (renameValue != key)
+                        Debug.LogWarning("Pair key exists, please try another key: " + key);
+
                     sectionToRename = null;
                     pairToRename = null;
                     renameValue = null;

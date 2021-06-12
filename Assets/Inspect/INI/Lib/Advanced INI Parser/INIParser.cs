@@ -126,6 +126,19 @@ public class INIParser
         }
     }
 
+    public void Clear()
+    {
+        lock (m_Lock)
+        {
+            File.WriteAllText(m_FileName, "");
+
+            m_Sections.Clear();
+            m_Modified.Clear();
+
+            m_iniString = "";
+        }
+    }
+
     // *** Parse section name ***
     private string ParseSectionName(string Line)
     {
@@ -412,6 +425,9 @@ public class INIParser
             // ** Write iniString to file ***
             if (m_FileName != null)
             {
+                m_iniString = m_iniString.Replace("\n\n\n", "\n\n");
+                m_iniString = m_iniString.Trim();
+
                 File.WriteAllText(m_FileName, m_iniString);
             }
         }
