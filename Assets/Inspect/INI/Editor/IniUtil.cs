@@ -2,7 +2,7 @@
 /**
  * Copyright (c) Pixisoft Corporations. All rights reserved.
  * 
- * Licensed under the Source EULA. See COPYING in the asset root for license informtaion.
+  * Licensed under MIT. See COPYING in the asset root for license informtaion.
  */
 using System;
 using UnityEditor;
