@@ -5,7 +5,9 @@
  * Licensed under the Source EULA. See COPYING in the asset root for license informtaion.
  */
 using System;
+using UnityEditor;
 using UnityEngine;
+using static UnityEditor.GenericMenu;
 
 namespace Inspect.Ini
 {
@@ -23,8 +25,19 @@ namespace Inspect.Ini
 
         public static bool IsValidIni(string ini)
         {
-            return true;
+            try
+            {
+                var parser = new INIParser();
+                parser.OpenFromString(ini);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.ToString());
+                return false;
+            }
         }
+
         public static void BeginHorizontal(EmptyFunction func, bool flexibleSpace = false)
         {
             GUILayout.BeginHorizontal();
@@ -63,6 +76,15 @@ namespace Inspect.Ini
                 GUI.skin.settings.cursorColor = oldCursorColor;
 
             return value;
+        }
+
+        public static void AddItem(GenericMenu menu, string name, MenuFunction fnc, bool cond = true)
+        {
+            var content = new GUIContent(name);
+            if (cond)
+                menu.AddItem(content, false, fnc);
+            else
+                menu.AddDisabledItem(content, false);
         }
     }
 }

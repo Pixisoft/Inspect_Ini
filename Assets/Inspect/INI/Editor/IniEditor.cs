@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace Inspect.Ini
 {
+    [CustomEditor(typeof(DefaultAsset), true)]
     public class IniEditor : Editor
     {
         /* Variables */
@@ -22,7 +23,7 @@ namespace Inspect.Ini
         private bool isTextMode;
 
         private string rawText;
-        private IniFile iniFile;
+        private INIParser iniFile;
 
         /* Setter & Getter */
 
@@ -52,7 +53,7 @@ namespace Inspect.Ini
         {
             GUI.enabled = true;
 
-            const string info = "You edit raw text if the XML editor isn't enough by clicking the button to the right";
+            const string info = "You edit raw text if the INI editor isn't enough by clicking the button to the right";
 
             Rect subHeaderRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 1.8f);
             Rect helpBoxRect = new Rect(subHeaderRect.x, subHeaderRect.y, subHeaderRect.width - subHeaderRect.width / 6 - 5f, subHeaderRect.height);
@@ -128,6 +129,9 @@ namespace Inspect.Ini
                 return;
 
             rawText = File.ReadAllText(Path);
+
+            iniFile = new INIParser();
+            iniFile.OpenFromString(rawText);
         }
 
         private void WriteToIni(bool useRaw = false)
@@ -135,11 +139,50 @@ namespace Inspect.Ini
             if (!File.Exists(Path))
                 return;
 
+            if (iniFile != null)
+            {
+                if (!useRaw)
+                    rawText = iniFile.iniString;
+            }
+
             File.WriteAllText(Path, rawText);
         }
 
+        private string GetUniqueName(string orignalName)
+        {
+            string uniqueName = orignalName;
+            int suffix = 0;
 
-        [MenuItem("Assets/Create/INI File", priority = 82)]
+            while (iniFile.IsSectionExists(uniqueName) && suffix < 100)
+            {
+                ++suffix;
+                if (suffix >= 100)
+                {
+                    Debug.LogError("Stop calling all your fields the same thing! Isn't it confusing?");
+                }
+                uniqueName = string.Format("{0}_{1}", orignalName, suffix.ToString());
+            }
+            return uniqueName;
+        }
+
+        private string GetUniqueName(string section, string orignalName)
+        {
+            string uniqueName = orignalName;
+            int suffix = 0;
+
+            while (iniFile.IsKeyExists(section, uniqueName) && suffix < 100)
+            {
+                ++suffix;
+                if (suffix >= 100)
+                {
+                    Debug.LogError("Stop calling all your fields the same thing! Isn't it confusing?");
+                }
+                uniqueName = string.Format("{0}_{1}", orignalName, suffix.ToString());
+            }
+            return uniqueName;
+        }
+
+        [MenuItem("Assets/Create/INI File", priority = 81)]
         public static void CreateNewXmlFile()
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
@@ -150,14 +193,27 @@ namespace Inspect.Ini
 
             path = System.IO.Path.Combine(path, "New INI File.ini");
 
-            File.WriteAllText(path, "");
+            var newIni = new INIParser();
+            newIni.Open(path);
+            newIni.Close();
 
             AssetDatabase.Refresh();
         }
 
         private void DrawNewProperty()
         {
+            GenericMenu menu = new GenericMenu();
 
+            IniUtil.AddItem(menu, "Key", () => 
+            {
+                string section = GetUniqueName("New Section");
+                string key = GetUniqueName(section, "NewKey");
+
+                iniFile.WriteValue(section, key, "");
+            });
+            menu.AddSeparator("");
+
+            menu.ShowAsContext();
         }
     }
 }
