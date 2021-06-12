@@ -204,7 +204,7 @@ namespace Inspect.Ini
         {
             GenericMenu menu = new GenericMenu();
 
-            IniUtil.AddItem(menu, "Key", () => 
+            IniUtil.AddItem(menu, "Add", () => 
             {
                 string section = GetUniqueName("New Section");
                 string key = GetUniqueName(section, "NewKey");
