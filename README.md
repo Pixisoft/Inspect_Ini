@@ -9,7 +9,7 @@ A dedicated and up to date INI editor inside the Inspector window.
 
 | GUI Mode                       | Text Mode                      |
 |:-------------------------------|:-------------------------------|
-| <img src="./etc/demo_1.png" /> | <img src="./etc/demo_1.png" /> |
+| <img src="./etc/demo_1.png" /> | <img src="./etc/demo_2.png" /> |
 
 ## :trophy: Features
 
