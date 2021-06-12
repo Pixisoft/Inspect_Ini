@@ -543,6 +543,22 @@ public class INIParser
         }
     }
 
+    public void WriteValue(string newSectionName, string oldSectionName)
+    {
+        WriteValue(newSectionName, m_Sections[oldSectionName]);
+    }
+
+    public void WriteValue(string SectionName, Dictionary<string, string> pairs)
+    {
+        foreach (KeyValuePair<string, string> entry in pairs)
+        {
+            string key = entry.Key;
+            string val = entry.Value;
+
+            WriteValue(SectionName, key, val);
+        }
+    }
+
     // *** Encode byte array ***
     private string EncodeByteArray(byte[] Value)
     {
