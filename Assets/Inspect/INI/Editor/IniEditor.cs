@@ -4,6 +4,8 @@
  * 
  * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
  */
+using IniParser;
+using IniParser.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,17 +27,17 @@ namespace Inspect.Ini
         private bool isTextMode;
 
         private string rawText;
-        private INIParser iniFile;
+        private FileIniDataParser parser;
+        private IniData iniFile;
 
         private string sectionToRename;
         private string pairToRename;
         private string renameValue;
-        private bool renameTrigger;
+
+        private bool modifiedDataThisFrame;
 
         private Dictionary<string, bool> foldouts = new Dictionary<string, bool>();
         private const bool DEFAULT_FOLD = false;
-
-        private Dictionary<string, Dictionary<string, string>> cache = new Dictionary<string, Dictionary<string, string>>();
 
         /* Setter & Getter */
 
@@ -142,8 +144,8 @@ namespace Inspect.Ini
 
             rawText = File.ReadAllText(Path);
 
-            iniFile = new INIParser();
-            iniFile.Open(Path);
+            parser = new FileIniDataParser();
+            iniFile = parser.ReadFile(Path);
         }
 
         private void WriteToIni(bool useRaw = false)
@@ -154,16 +156,10 @@ namespace Inspect.Ini
             if (iniFile != null)
             {
                 if (!useRaw)
-                    rawText = iniFile.iniString;
-
-                if (rawText != iniFile.iniString)
-                {
-                    File.WriteAllText(Path, rawText);
-                    return;
-                }
+                    rawText = iniFile.ToString();
             }
 
-            iniFile.Close();  // when you close it, it writes to the disk
+            parser.WriteFile(Path, iniFile);
         }
 
         private string GetUniqueName(string orignalName)
@@ -171,7 +167,7 @@ namespace Inspect.Ini
             string uniqueName = orignalName;
             int suffix = 0;
 
-            while (iniFile.IsSectionExists(uniqueName) && suffix < 100)
+            while (iniFile.Sections.ContainsSection(uniqueName) && suffix < 100)
             {
                 ++suffix;
                 if (suffix >= 100)
@@ -188,7 +184,7 @@ namespace Inspect.Ini
             string uniqueName = orignalName;
             int suffix = 0;
 
-            while (iniFile.IsKeyExists(section, uniqueName) && suffix < 100)
+            while (iniFile[section].ContainsKey(uniqueName) && suffix < 100)
             {
                 ++suffix;
                 if (suffix >= 100)
@@ -211,9 +207,8 @@ namespace Inspect.Ini
 
             path = System.IO.Path.Combine(path, "New INI File.ini");
 
-            var newIni = new INIParser();
-            newIni.Open(path);
-            newIni.Close();
+            var parser = new FileIniDataParser();
+            parser.WriteFile(path, new IniData());
 
             AssetDatabase.Refresh();
         }
@@ -227,12 +222,12 @@ namespace Inspect.Ini
                 string section = GetUniqueName("New Section");
                 string key = GetUniqueName(section, "NewKey");
 
-                iniFile.WriteValue(section, key, "");
+                iniFile[section][key] = "";
             });
 
             menu.AddSeparator("");
 
-            IniUtil.AddItem(menu, "Clear", () => { iniFile.Clear(); });
+            IniUtil.AddItem(menu, "Clear", () => { iniFile.Sections.Clear(); });
 
             menu.ShowAsContext();
         }
@@ -244,13 +239,19 @@ namespace Inspect.Ini
             IniUtil.AddItem(menu, "Add/Pair", () =>
             {
                 string key = GetUniqueName(section, "NewKey");
-                iniFile.WriteValue(section, key, "");
+                iniFile[section][key] = "";
             });
 
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
                 string dupSection = GetUniqueName(section + " (duplicate)");
-                iniFile.WriteValue(dupSection, section);
+
+                iniFile.Sections.AddSection(dupSection);
+                KeyData keyData = iniFile[section].GetKeyData(section);
+                foreach (KeyData data in iniFile[section])
+                {
+                    iniFile[dupSection][data.KeyName] = data.Value;
+                }
             });
 
             IniUtil.AddItem(menu, "Rename", () =>
@@ -275,7 +276,7 @@ namespace Inspect.Ini
 
             menu.AddSeparator("");
 
-            IniUtil.AddItem(menu, "Remove", () => { iniFile.SectionDelete(section); });
+            IniUtil.AddItem(menu, "Remove", () => { iniFile.Sections.RemoveSection(section); });
 
             menu.ShowAsContext();
         }
@@ -287,8 +288,8 @@ namespace Inspect.Ini
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
                 string dupKey = GetUniqueName(section + " (duplicate)", key);
-                string val = iniFile.ReadValue(section, key, "");
-                iniFile.WriteValue(section, dupKey, val);
+                string val = iniFile[section][key];
+                iniFile[section][dupKey] = val;
             });
 
             IniUtil.AddItem(menu, "Rename", () =>
@@ -313,66 +314,25 @@ namespace Inspect.Ini
 
             menu.AddSeparator("");
 
-            IniUtil.AddItem(menu, "Remove", () => { iniFile.KeyDelete(section, key); });
+            IniUtil.AddItem(menu, "Remove", () => { iniFile[section].RemoveKey(key); });
 
             menu.ShowAsContext();
         }
 
-        private void ApplyModifiedData()
-        {
-            foreach (KeyValuePair<string, Dictionary<string, string>> section_entry in cache)
-            {
-                string section = section_entry.Key;
-                Dictionary<string, string> pairs = section_entry.Value;
-
-                foreach (KeyValuePair<string, string> pair_entry in pairs)
-                {
-                    string key = pair_entry.Key;
-                    string val = pair_entry.Value;
-
-                    iniFile.WriteValue(section, key, val);
-                }
-            }
-
-            if (renameTrigger)
-            {
-                // Rename pair
-                if (pairToRename != null)
-                {
-                    iniFile.KeyRename(sectionToRename, pairToRename, renameValue);
-                }
-                // Rename section
-                else
-                {
-                    iniFile.SectionRename(sectionToRename, renameValue);
-                }
-
-                sectionToRename = null;
-                pairToRename = null;
-                renameValue = null;
-                renameTrigger = false;
-            }
-        }
-
         private void RecursiveDrawField()
         {
-            Dictionary<string, Dictionary<string, string>> sections = iniFile.Sections;
+            modifiedDataThisFrame = false;
 
-            cache.Clear();
-
-            foreach (KeyValuePair<string, Dictionary<string, string>> section_entry in sections)
+            foreach (var section in iniFile.Sections)
             {
-                string section = section_entry.Key;
-                Dictionary<string, string> pairs = section_entry.Value;
-
-                DrawSection(section, pairs);
+                DrawSection(section, section.Keys);
+                if (modifiedDataThisFrame) break;
             }
-
-            ApplyModifiedData();
         }
 
-        private void DrawSection(string name, Dictionary<string, string> pairs)
+        private void DrawSection(SectionData section, KeyDataCollection keys)
         {
+            string name = section.SectionName;
             bool renaming = (name == sectionToRename && pairToRename == null);
 
             IniUtil.BeginHorizontal(() =>
@@ -399,19 +359,22 @@ namespace Inspect.Ini
             if (!foldouts[name])
                 return;
 
-            foreach (KeyValuePair<string, string> pair_entry in pairs)
+            foreach (KeyData keyData in keys)
             {
-                string pair_name = pair_entry.Key;
-                string pair_value = pair_entry.Value;
-                DrawPair(name, pair_name, pair_value);
+                DrawPair(section, keyData);
+                if (modifiedDataThisFrame) break;
             }
         }
 
-        private void DrawPair(string section, string name, string val)
+        private void DrawPair(SectionData section, KeyData keyData)
         {
+            string sectionName = section.SectionName;
+            string keyName = keyData.KeyName;
+            string keyVal = keyData.Value;
+
             const int level = 1;
 
-            bool renaming = (section == sectionToRename && name == pairToRename);
+            bool renaming = (sectionName == sectionToRename && keyName == pairToRename);
 
             IniUtil.BeginHorizontal(() =>
             {
@@ -419,29 +382,19 @@ namespace Inspect.Ini
 
                 if (renaming)
                 {
-                    DrawRenameField(section, name);
+                    DrawRenameField(sectionName, keyName);
                 }
                 else
                 {
                     string txt = "Σ";
                     const float border = 4;
                     if (IniUtil.Button(txt, border))
-                        DrawPairMenu(section, name);
+                        DrawPairMenu(sectionName, keyName);
 
-                    IniUtil.Label(name);
+                    IniUtil.Label(keyName);
                 }
 
-                string newVal = GUILayout.TextField(val);
-                if (newVal != val)
-                {
-                    if (!cache.ContainsKey(section))
-                        cache.Add(section, new Dictionary<string, string>());
-
-                    if (!cache[section].ContainsKey(name))
-                        cache[section].Add(name, newVal);
-                    else
-                        cache[section][name] = newVal;
-                }
+                keyData.Value = GUILayout.TextField(keyVal);
             });
         }
 
@@ -452,28 +405,31 @@ namespace Inspect.Ini
 
             if (GUILayout.Button("✔", style, GUILayout.Width(24)))
             {
-                if (!iniFile.IsSectionExists(renameValue))
+                if (!iniFile.Sections.ContainsSection(renameValue))
                 {
-                    sectionToRename = section;
-                    pairToRename = null;
-                    renameTrigger = true;
+                    SectionData data = iniFile.Sections.GetSectionData(section);
+                    data.SectionName = renameValue;
+
+                    iniFile.Sections.RemoveSection(section);
+                    iniFile.Sections.Add(data);
 
                     if (!foldouts.ContainsKey(renameValue))
                     {
                         foldouts.Add(renameValue, foldouts[section]);
                     }
+
+                    modifiedDataThisFrame = true;
                 }
                 else
                 {
                     if (renameValue != section)
                         Debug.LogWarning("Section key exists, please try another key: " + section);
-
-                    sectionToRename = null;
-                    pairToRename = null;
-                    renameValue = null;
                 }
                 
                 GUI.FocusControl("");
+
+                sectionToRename = null;
+                pairToRename = null;
             }
 
             GUI.SetNextControlName("RENAME_SECTION");
@@ -488,23 +444,22 @@ namespace Inspect.Ini
 
             if (GUILayout.Button("✔", style, GUILayout.Width(24)))
             {
-                if (!iniFile.IsKeyExists(section, renameValue))
+                if (!iniFile[section].ContainsKey(renameValue))
                 {
-                    sectionToRename = section;
-                    pairToRename = key;
-                    renameTrigger = true;
+                    iniFile[section].GetKeyData(key).KeyName = renameValue;
+
+                    modifiedDataThisFrame = true;
                 }
                 else
                 {
                     if (renameValue != key)
                         Debug.LogWarning("Pair key exists, please try another key: " + key);
-
-                    sectionToRename = null;
-                    pairToRename = null;
-                    renameValue = null;
                 }
                 
                 GUI.FocusControl("");
+
+                sectionToRename = null;
+                pairToRename = null;
             }
 
             GUI.SetNextControlName("RENAME_PAIR");

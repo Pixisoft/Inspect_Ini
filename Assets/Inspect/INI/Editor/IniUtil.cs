@@ -4,8 +4,8 @@
  * 
   * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
  */
+using IniParser.Parser;
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using static UnityEditor.GenericMenu;
@@ -28,8 +28,8 @@ namespace Inspect.Ini
         {
             try
             {
-                var parser = new INIParser();
-                parser.OpenFromString(ini);
+                var parser = new IniDataParser();
+                parser.Parse(ini);
                 return true;
             }
             catch (Exception ex)
