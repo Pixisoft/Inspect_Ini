@@ -162,39 +162,7 @@ namespace Inspect.Ini
             parser.WriteFile(Path, iniFile);
         }
 
-        private string GetUniqueName(string orignalName)
-        {
-            string uniqueName = orignalName;
-            int suffix = 0;
 
-            while (iniFile.Sections.ContainsSection(uniqueName) && suffix < 100)
-            {
-                ++suffix;
-                if (suffix >= 100)
-                {
-                    Debug.LogError("Stop calling all your fields the same thing! Isn't it confusing?");
-                }
-                uniqueName = string.Format("{0} {1}", orignalName, suffix.ToString());
-            }
-            return uniqueName;
-        }
-
-        private string GetUniqueName(string section, string orignalName)
-        {
-            string uniqueName = orignalName;
-            int suffix = 0;
-
-            while (iniFile[section].ContainsKey(uniqueName) && suffix < 100)
-            {
-                ++suffix;
-                if (suffix >= 100)
-                {
-                    Debug.LogError("Stop calling all your fields the same thing! Isn't it confusing?");
-                }
-                uniqueName = string.Format("{0}_{1}", orignalName, suffix.ToString());
-            }
-            return uniqueName;
-        }
 
         [MenuItem("Assets/Create/INI File", priority = 81)]
         public static void CreateNewIniFile()
@@ -219,8 +187,8 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Add", () =>
             {
-                string section = GetUniqueName("New Section");
-                string key = GetUniqueName(section, "NewKey");
+                string section = IniUtil.GetUniqueName(iniFile, "New Section");
+                string key = IniUtil.GetUniqueName(iniFile, section, "NewKey");
 
                 iniFile[section][key] = "";
             });
@@ -238,13 +206,13 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Add/Pair", () =>
             {
-                string key = GetUniqueName(section, "NewKey");
+                string key = IniUtil.GetUniqueName(iniFile, section, "NewKey");
                 iniFile[section][key] = "";
             });
 
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
-                string dupSection = GetUniqueName(section + " (duplicate)");
+                string dupSection = IniUtil.GetUniqueName(iniFile, section + " (duplicate)");
 
                 iniFile.Sections.AddSection(dupSection);
                 KeyData keyData = iniFile[section].GetKeyData(section);
@@ -266,13 +234,13 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Move Up", () =>
             {
-                // TODO: ..
-            }, false);
+                IniUtil.SectionMove(iniFile, section, true);
+            }, IniUtil.CanSectionMove(iniFile, section, true));
 
             IniUtil.AddItem(menu, "Move Down", () =>
             {
-                // TODO: ..
-            }, false);
+                IniUtil.SectionMove(iniFile, section, false);
+            }, IniUtil.CanSectionMove(iniFile, section, false));
 
             menu.AddSeparator("");
 
@@ -287,7 +255,7 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
-                string dupKey = GetUniqueName(section + " (duplicate)", key);
+                string dupKey = IniUtil.GetUniqueName(iniFile, section + " (duplicate)", key);
                 string val = iniFile[section][key];
                 iniFile[section][dupKey] = val;
             });
@@ -304,13 +272,13 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Move Up", () =>
             {
-                // TODO: ..
-            }, false);
+                IniUtil.PairMove(iniFile, section, key, true);
+            }, IniUtil.CanPairMove(iniFile, section, key, true));
 
             IniUtil.AddItem(menu, "Move Down", () =>
             {
-                // TODO: ..
-            }, false);
+                IniUtil.PairMove(iniFile, section, key, false);
+            }, IniUtil.CanPairMove(iniFile, section, key, false));
 
             menu.AddSeparator("");
 
