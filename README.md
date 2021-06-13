@@ -11,6 +11,8 @@ A dedicated and up to date INI editor inside the Inspector window.
 |:-------------------------------|:-------------------------------|
 | <img src="./etc/demo_1.png" /> | <img src="./etc/demo_2.png" /> |
 
+*P.S. This package requires [ini-parser](https://github.com/rickyah/ini-parser) to run, yet we have included for you!*
+
 ## :trophy: Features
 
 * Out of box
