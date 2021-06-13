@@ -249,7 +249,7 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
-                string dupSection = GetUniqueName(section);
+                string dupSection = GetUniqueName(section + " (duplicate)");
                 iniFile.WriteValue(dupSection, section);
             });
 
@@ -286,7 +286,7 @@ namespace Inspect.Ini
 
             IniUtil.AddItem(menu, "Duplicate", () =>
             {
-                string dupKey = GetUniqueName(section, key);
+                string dupKey = GetUniqueName(section + " (duplicate)", key);
                 string val = iniFile.ReadValue(section, key, "");
                 iniFile.WriteValue(section, dupKey, val);
             });
@@ -339,17 +339,12 @@ namespace Inspect.Ini
                 // Rename pair
                 if (pairToRename != null)
                 {
-                    string oldVal = iniFile.Sections[sectionToRename][pairToRename];
-
-                    iniFile.WriteValue(sectionToRename, renameValue, oldVal);
-                    iniFile.KeyDelete(sectionToRename, pairToRename);
+                    iniFile.KeyRename(sectionToRename, pairToRename, renameValue);
                 }
                 // Rename section
                 else
                 {
-                    iniFile.WriteValue(renameValue, sectionToRename);
-
-                    iniFile.SectionDelete(sectionToRename);
+                    iniFile.SectionRename(sectionToRename, renameValue);
                 }
 
                 sectionToRename = null;

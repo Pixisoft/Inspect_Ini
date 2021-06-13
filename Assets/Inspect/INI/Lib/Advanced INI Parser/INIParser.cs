@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class INIParser
@@ -42,6 +43,7 @@ public class INIParser
     // *** Local cache modified flag ***
     private bool m_CacheModified = false;
 
+    // You can only use this to get data, do not modified it directly!
     public Dictionary<string, Dictionary<string, string>> Sections { get { return this.m_Sections; } }
 
     #endregion
@@ -425,8 +427,10 @@ public class INIParser
             // ** Write iniString to file ***
             if (m_FileName != null)
             {
-                m_iniString = m_iniString.Replace("\n\n\n", "\n\n");
+                m_iniString = Regex.Replace(m_iniString, "[\r\n][\r\n][\r\n]+", "\r\n\r\n");
                 m_iniString = m_iniString.Trim();
+
+                Debug.Log(m_iniString);
 
                 File.WriteAllText(m_FileName, m_iniString);
             }
@@ -573,6 +577,20 @@ public class INIParser
 
             WriteValue(SectionName, key, val);
         }
+    }
+
+    public void SectionRename(string oldSectionName, string newSectionName)
+    {
+        WriteValue(newSectionName, oldSectionName);
+        SectionDelete(oldSectionName);  // delete the old one
+    }
+
+    public void KeyRename(string SectionName, string oldKeyName, string newKeyName)
+    {
+        string oldVal = m_Sections[SectionName][oldKeyName];
+
+        WriteValue(SectionName, newKeyName, oldVal);
+        KeyDelete(SectionName, oldKeyName);
     }
 
     // *** Encode byte array ***
