@@ -17,6 +17,6 @@ A dedicated and up to date INI editor inside the Inspector window.
 
 ## License
 
-Copyright (c) Pixisoft Corporations. All rights reserved.
+Copyright (c) Pixisoft. All rights reserved.
 
 Licensed under MIT. See [LICENSE.txt](https://github.com/Pixisoft/Inspect_Ini/blob/master/LICENSE.txt) for details.
