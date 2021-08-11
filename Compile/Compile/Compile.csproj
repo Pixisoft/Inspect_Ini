@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Inspect_Ini</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;UNITY_EDITOR;UNITY_2018_3_OR_NEWER</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;UNITY_EDITOR;UNITY_2018_3_OR_NEWER</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Source\Assets\Inspect\INI\Editor\IniEditor.cs" Link="IniEditor.cs" />
+    <Compile Include="..\..\Source\Assets\Inspect\INI\Editor\IniUtil.cs" Link="IniUtil.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="INIFileParser">
+      <HintPath>..\..\_references\ini-parser\INIFileParser.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>..\..\_references\UnityEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\_references\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
