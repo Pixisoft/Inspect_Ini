@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR && UNITY_STANDALONE_WIN
+﻿#if UNITY_EDITOR
 /**
  * Copyright (c) Pixisoft Corporations. All rights reserved.
  * 

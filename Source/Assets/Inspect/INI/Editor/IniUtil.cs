@@ -1,8 +1,8 @@
-#if UNITY_EDITOR && UNITY_STANDALONE_WIN
+#if UNITY_EDITOR
 /**
  * Copyright (c) Pixisoft Corporations. All rights reserved.
  * 
-  * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
+ * Licensed under MIT. See LICENSE.txt in the asset root for license informtaion.
  */
 using IniParser.Model;
 using IniParser.Parser;
