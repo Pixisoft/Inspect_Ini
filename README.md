@@ -3,8 +3,8 @@ the full documentation.**
 
 [![License: Private](https://img.shields.io/badge/License-Private-green.svg)](https://github.com/Pixisoft/Inspect_Ini/blob/master/LICENSE.txt)
 [![Unity Engine](https://img.shields.io/badge/unity-2021.1.1f1-black.svg?style=flat&logo=unity&cacheSeconds=2592000)](https://unity3d.com/get-unity/download/archive)
-[![Build Source](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_source.yml/badge.svg)](https://github.com/Pixisoft/NovBundle/actions/workflows/build_source.yml)
-[![Build Publish](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_publish.yml/badge.svg)](https://github.com/Pixisoft/NovBundle/actions/workflows/build_publish.yml)
+[![Build Source](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_source.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_source.yml)
+[![Build Publish](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_publish.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/build_publish.yml)
 
 ---
 
