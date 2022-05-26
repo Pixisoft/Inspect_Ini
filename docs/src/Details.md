@@ -1,17 +1,17 @@
 ## Package upload
 
-### :pencil: Additional compatibility information
+### 📝 Additional compatibility information
 
 Any version above 5.6+ sould work. Please see Technical details section for
 more information.
 
 ## Description
 
-### :pencil: Summary (10-200 characters)
+### 📝 Summary (10-200 characters)
 
 A dedicated and up to date INI editor inside the Inspector window.
 
-### :pencil: Description
+### 📝 Description
 
 **Inspect_Ini** provides a graphical user interface inside Unity, therefore
 you can edit .ini files directly.
@@ -28,7 +28,7 @@ you can edit .ini files directly.
 If you have any issue please contact us through [GitHub](https://github.com/Pixisoft)
 or email to pixisoft.tw@gmail.com.
 
-### :pencil: Technical details
+### 📝 Technical details
 
 The source can be compiled in .NET 2.0 or above, hence all .NET version should
 work well with this plugin.
