@@ -8,12 +8,9 @@
 [![Source 📦](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/source_package.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/source_package.yml)
 [![Publish ⚙️](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/publish_build.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/publish_build.yml)
 [![Publish 📦](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/publish_package.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/publish_package.yml)
+[![Docs](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/docs.yml/badge.svg)](https://github.com/Pixisoft/Inspect_Ini/actions/workflows/docs.yml)
 
 A dedicated and up to date INI editor inside the Inspector window.
-
-| GUI Mode                       | Text Mode                      |
-|:-------------------------------|:-------------------------------|
-| <img src="./etc/demo_1.png" /> | <img src="./etc/demo_2.png" /> |
 
 *P.S. This package requires [ini-parser](https://github.com/rickyah/ini-parser) to run, yet we have included for you!*
 
@@ -24,12 +21,9 @@ A dedicated and up to date INI editor inside the Inspector window.
 * `_references` - Unity DLL to compile project source to DLL.
 * `Publish` - Project that contains package DLL and ready to publish to [Asset Store Publisher](https://publisher.assetstore.unity3d.com/info.html?_gl=1*1fwg1ij*_ga*MTg0NjU4MTc4NC4xNjAwMzQ5NzM3*_ga_1S78EFL1W5*MTYyNDI3MzU4Ni40Ni4wLjE2MjQyNzM1ODYuNjA.&_ga=2.77544981.1416380940.1624186429-1846581784.1600349737) portal.
 
-## 🏆 Features
+## 🔗 Links
 
-* Out of box
-* Lightweight and easy to use
-* Fully compatible with Unity system
-* Fully accessible to source code
+* [Documentation](https://pixisoft.github.io/Documents/Inspect_Ini/)
 
 ## License
 
